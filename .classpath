@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="con" path="ch.epfl.lamp.sdt.launching.SCALA_CONTAINER"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.6"/>
+	<classpathentry kind="lib" path="/Users/nickjohnson/Documents/workspace/pastry-2.1/pastry.jar"/>
+	<classpathentry kind="lib" path="/Users/nickjohnson/Documents/workspace/jetty-distribution-7.0.2.v20100331/lib/jetty-server-7.0.2.v20100331.jar"/>
+	<classpathentry kind="lib" path="/Users/nickjohnson/Documents/workspace/jetty-distribution-7.0.2.v20100331/lib/jetty-util-7.0.2.v20100331.jar"/>
+	<classpathentry kind="lib" path="/Users/nickjohnson/Documents/workspace/jetty-distribution-7.0.2.v20100331/lib/servlet-api-2.5.jar"/>
+	<classpathentry kind="lib" path="/Users/nickjohnson/Documents/workspace/jetty-distribution-7.0.2.v20100331/lib/jetty-continuation-7.0.2.v20100331.jar"/>
+	<classpathentry kind="lib" path="/Users/nickjohnson/Documents/workspace/jetty-distribution-7.0.2.v20100331/lib/jetty-http-7.0.2.v20100331.jar"/>
+	<classpathentry kind="lib" path="/Users/nickjohnson/Documents/workspace/jetty-distribution-7.0.2.v20100331/lib/jetty-io-7.0.2.v20100331.jar"/>
+	<classpathentry kind="lib" path="/Users/nickjohnson/Documents/workspace/commons-io-1.4/commons-io-1.4.jar"/>
+	<classpathentry kind="lib" path="/Users/nickjohnson/Documents/workspace/pastry-2.1/lib/xmlpull_1_1_3_4a.jar"/>
+	<classpathentry kind="lib" path="/Users/nickjohnson/Documents/workspace/pastry-2.1/lib/xpp3-1.1.3.4d_b2.jar"/>
+	<classpathentry kind="output" path="bin"/>
+</classpath>
