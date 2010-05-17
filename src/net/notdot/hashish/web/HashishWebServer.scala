@@ -1,12 +1,15 @@
 package net.notdot.hashish.web
 
 import scala.collection.JavaConversions._
+import scala.collection.mutable.ArrayBuffer
 import java.security.MessageDigest
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
 import org.apache.commons.io.IOUtils
 import org.apache.commons.io.HexDump
+import org.apache.commons.fileupload.servlet.ServletFileUpload
+import org.eclipse.jetty.continuation.Continuation
 import org.eclipse.jetty.continuation.ContinuationSupport
 import org.eclipse.jetty.server.Request
 import org.eclipse.jetty.server.Server
@@ -76,40 +79,63 @@ class DomainHashContentHandler(client:AbstractHashishClient) extends BaseContent
 }
 
 class UploadHandler(client:AbstractHashishClient) extends AbstractHandler {
-	def handle(target:String, baseRequest:Request, request:HttpServletRequest,
-			response:HttpServletResponse) = {
-		baseRequest.setHandled(true)
-		
+	def extractBody(request:HttpServletRequest) = {
 		val headers = (for {
 			nameObj <- request.getHeaderNames()
 			name = nameObj.asInstanceOf[String]
 			value = request.getHeader(name)
 		} yield name -> value).toMap[String,String]
 		val body = IOUtils.toByteArray(request.getInputStream())
-		val resource = new Resource(headers, body)
+		Array(new Resource(headers, body))
+	}
+	
+	def extractMultipart(request:HttpServletRequest) = {
+		val upload = new ServletFileUpload
+		val iter = upload.getItemIterator(request)
+		val ret = new ArrayBuffer[Resource]()
+		while(iter.hasNext) {
+			val item = iter.next
+			val name = item.getFieldName
+			if(!item.isFormField) {
+				/*val headerObj = item.getHeaders()
+				val headers = (for {
+					nameObj <- headerObj.getHeaderNames
+					name = nameObj.asInstanceOf[String]
+					value = headerObj.getHeader(name)
+				} yield name -> value).toMap[String,String]*/
+				val headers = Map("Content-Type" -> item.getContentType)
+				val body = IOUtils.toByteArray(item.openStream())
+				ret += new Resource(headers, body)
+			}
+		}
+		ret.toArray[Resource]
+	}
+	
+	def handle(target:String, baseRequest:Request, request:HttpServletRequest,
+			response:HttpServletResponse) = {
+		baseRequest.setHandled(true)
+		
+		val resources = if(ServletFileUpload.isMultipartContent(request))
+			extractMultipart(request)
+		else
+			extractBody(request)
 
 		val continuation = ContinuationSupport.getContinuation(request)
 		continuation.suspend
-		client.insert(resource, (result:Either[Exception,Int]) => {
-			result match {
-				case Right(0) => writeFailureResponse(request, response)
-				case Right(successes) => writeSuccessResponse(request, response, resource, successes)
-				case Left(ex) => write500(request, response, ex)
-			}
-			continuation.complete
-		})
+		client.insertMany(resources, finishInsert(continuation, request, response, resources))
 	}
 	
-	def writeSuccessResponse(request:HttpServletRequest, response:HttpServletResponse, resource:Resource, successes:Int) = {
+	def finishInsert(continuation:Continuation, request:HttpServletRequest, response:HttpServletResponse, resources:Array[Resource])
+			(results:Array[Either[Exception,Int]]) = {
+		val statuses = for(result <- resources.zip(results)) yield result match {
+			case (resource, Right(0)) => "{'status': 'failure', 'replicas': 0, 'id': '" + resource.getId.toStringFull + "'}"
+			case (resource, Right(successes)) => "{'status': 'success', 'replicas': " + successes + ", 'id': '" + resource.getId.toStringFull + "'}"
+			case (resource, Left(ex)) => "{'status': 'failure', 'replicas': 0, 'id': '" + resource.getId.toStringFull + "', 'error': '" + ex.toString + "'}"
+		}
 		response.setStatus(201)
-		response.setHeader("Content-Type", "text/html")
-		response.getWriter().print("Resource with ID " + resource.getId().toStringFull() + " written to " + successes + " replicas")
-	}
-	
-	def writeFailureResponse(request:HttpServletRequest, response:HttpServletResponse) = {
-		response.setStatus(500)
-		response.setHeader("Content-Type", "text/html")
-		response.getWriter().print("Failed to write resource to any replicas.")
+		response.setHeader("Content-Type", "text/plain")
+		response.getWriter().print("[" + statuses.reduceLeft(_ + ", " + _) + "]")
+		continuation.complete
 	}
 	
 	def write500(request:HttpServletRequest, response:HttpServletResponse, ex:Exception) = {

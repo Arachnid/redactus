@@ -47,4 +47,17 @@ abstract class AbstractHashishClient(val env:Environment,
 			case Right(ret) => callback(new Right(ret.count(_.booleanValue)))
 		})
 	}
+	
+	def insertMany(resources:Array[Resource], callback:(Array[Either[Exception,Int]]=>Unit)) = {
+		var remaining = resources.length
+		val results = new Array[Either[Exception,Int]](remaining)
+		for(i <- 0 until resources.length) {
+			insert(resources(i), (result)=>{
+				results(i) = result
+				remaining -= 1
+				if(remaining == 0)
+					callback(results)
+			})
+		}
+	}
 }
