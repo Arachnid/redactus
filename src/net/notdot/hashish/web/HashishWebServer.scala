@@ -14,55 +14,62 @@ import org.eclipse.jetty.continuation.ContinuationSupport
 import org.eclipse.jetty.server.Request
 import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.server.handler._
-import rice.pastry.Id
+import rice.p2p.commonapi.Id
 import rice.p2p.past.PastException
 
 import net.notdot.hashish._
 
 object BaseContentHandler {
-	val PathHashRE = """/([0-9a-fA-F]{40})""".r
+	val PathHashRE = """/([0-9a-fA-F]{40})(/.*|)""".r
 	val HostnameHashRE = """([0-9a-fA-F]{40})\.sha1\..+""".r
 }
 
 abstract class BaseContentHandler(val client:AbstractHashishClient) extends AbstractHandler {
-	def getContent(request:HttpServletRequest, response:HttpServletResponse, hexId:String) = {
-		val id = Id.build(hexId)
-		val continuation = ContinuationSupport.getContinuation(request)
-		continuation.suspend
+	def getContent(continuation:Continuation, response:HttpServletResponse, id:Id, path:String):Unit = {
 		client.getByHash(id, (result:Either[Exception,Resource]) => {
 			result match {
-				case Right(null) => get404(request, response, "Not Found")
-				case Right(resource) => writeResponse(request, response, resource)
-				case Left(ex) => get500(request, response, ex)
+				case Right(null) => serve404(continuation, response, "Not Found")
+				case Right(resource:Content) => serveContent(continuation, response, resource, path)
+				case Right(resource:Manifest) => resource.lookup(path) match {
+					case Some((newid, newpath)) => getContent(continuation, response, newid, newpath)
+					case None => serve404(continuation, response, "Not Found")
+				}
+				case Left(ex) => serve500(continuation, response, ex)
 			}
-			continuation.complete
 		})
 	}
 	
-	def writeResponse(request:HttpServletRequest, response:HttpServletResponse,
-			resource:Resource) = {
+	def serveContent(continuation:Continuation, response:HttpServletResponse,
+			resource:Content, path:String) = {
 		resource.headers foreach { kv => response.addHeader(kv._1, kv._2) }
 		response.getOutputStream().write(resource.body)
+		continuation.complete
 	}
 	
-	def get404(request:HttpServletRequest, response:HttpServletResponse, reason:String) = {
+	def serve404(continuation:Continuation, response:HttpServletResponse, reason:String) = {
 		response.sendError(404, reason)
+		continuation.complete
 	}
 	
-	def get500(request:HttpServletRequest, response:HttpServletResponse, ex:Exception) = {
+	def serve500(continuation:Continuation, response:HttpServletResponse, ex:Exception) = {
 		response.sendError(500, ex.toString)
 		printf(ex.toString + "\n")
 		printf(ex.getStackTraceString + "\n")
+		continuation.complete
 	}
 }
 
 class PathHashContentHandler(client:AbstractHashishClient) extends BaseContentHandler(client) {
 	def handle(target:String, baseRequest:Request, request:HttpServletRequest,
 			response:HttpServletResponse) = {
-		baseRequest.setHandled(true)
 		request.getPathInfo match {
-			case BaseContentHandler.PathHashRE(hexId) => getContent(request, response, hexId)
-			case _ => baseRequest.setHandled(false)
+			case BaseContentHandler.PathHashRE(hexId, path) => {
+				baseRequest.setHandled(true)
+				val continuation = ContinuationSupport.getContinuation(request)
+				continuation.suspend
+				getContent(continuation, response, rice.pastry.Id.build(hexId), path)
+			}
+			case _ => Unit
 		}
 	}
 }
@@ -70,15 +77,26 @@ class PathHashContentHandler(client:AbstractHashishClient) extends BaseContentHa
 class DomainHashContentHandler(client:AbstractHashishClient) extends BaseContentHandler(client) {
 	def handle(target:String, baseRequest:Request, request:HttpServletRequest,
 			response:HttpServletResponse) = {
-		baseRequest.setHandled(true)
 		request.getServerName match {
-			case BaseContentHandler.HostnameHashRE(hexId) => getContent(request, response, hexId)
-			case _ => baseRequest.setHandled(false)
+			case BaseContentHandler.HostnameHashRE(hexId) => {
+				baseRequest.setHandled(true)
+				val continuation = ContinuationSupport.getContinuation(request)
+				continuation.suspend
+				getContent(continuation, response, rice.pastry.Id.build(hexId), request.getPathInfo)
+			}
+			case _ => Unit
 		}
 	}
 }
 
 class UploadHandler(client:AbstractHashishClient) extends AbstractHandler {
+	def createResource(headers:Map[String,String], body:Array[Byte]):Resource = {
+		headers.get("Content-Type") match {
+			case Some("text/x-hashish-manifest") => new Manifest(body)
+			case _ => new Content(headers, body)
+		}
+	}
+
 	def extractBody(request:HttpServletRequest) = {
 		val headers = (for {
 			nameObj <- request.getHeaderNames()
@@ -86,7 +104,7 @@ class UploadHandler(client:AbstractHashishClient) extends AbstractHandler {
 			value = request.getHeader(name)
 		} yield name -> value).toMap[String,String]
 		val body = IOUtils.toByteArray(request.getInputStream())
-		Array(new Resource(headers, body))
+		Array(createResource(headers, body))
 	}
 	
 	def extractMultipart(request:HttpServletRequest) = {
@@ -105,7 +123,7 @@ class UploadHandler(client:AbstractHashishClient) extends AbstractHandler {
 				} yield name -> value).toMap[String,String]*/
 				val headers = Map("Content-Type" -> item.getContentType)
 				val body = IOUtils.toByteArray(item.openStream())
-				ret += new Resource(headers, body)
+				ret += createResource(headers, body)
 			}
 		}
 		ret.toArray[Resource]

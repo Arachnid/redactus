@@ -4,6 +4,7 @@ import java.io.IOException
 import scala.collection.JavaConversions
 import rice.Continuation
 import rice.pastry._
+import rice.p2p.commonapi.Id
 import rice.p2p.past._
 import rice.environment.Environment
 import rice.pastry.commonapi.PastryIdFactory
