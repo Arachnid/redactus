@@ -12,7 +12,7 @@ import net.notdot.hashish.web.HashishWebServer
 object HashishApp {
 	def main(args: Array[String]):Unit = {
 		val baseProps = new TypedProperties
-		baseProps.load(this.getClass().getClassLoader().getResourceAsStream("hashish.properties"))
+		baseProps.load(this.getClass().getClassLoader().getResourceAsStream("META-INF/hashish.properties"))
 
 		val propFile = new File("./hashish.properties")
 		val properties = if(propFile.exists)

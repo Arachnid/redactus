@@ -3,8 +3,8 @@
 /Users/nickjohnson/Documents/workspace/hash-ish/src/main/scala/net/notdot/hashish/HashishApp.scala -> /Users/nickjohnson/Documents/workspace/hash-ish/src/main/scala/net/notdot/hashish/TypedProperties.scala
 /Users/nickjohnson/Documents/workspace/hash-ish/src/main/scala/net/notdot/hashish/HashishApp.scala -> /Users/nickjohnson/Documents/workspace/hash-ish/src/main/scala/net/notdot/hashish/SocketHashishClient.scala
 /Users/nickjohnson/Documents/workspace/hash-ish/src/main/scala/net/notdot/hashish/HashishApp.scala -> /Users/nickjohnson/Documents/workspace/hash-ish/src/main/scala/net/notdot/hashish/AbstractHashishClient.scala
-/Users/nickjohnson/Documents/workspace/hash-ish/src/main/scala/net/notdot/hashish/HashishApp.scala -> /Users/nickjohnson/Documents/workspace/hash-ish/src/main/scala/net/notdot/hashish/HashishApp.scala
 /Users/nickjohnson/Documents/workspace/hash-ish/src/main/scala/net/notdot/hashish/HashishApp.scala -> /Users/nickjohnson/Documents/workspace/hash-ish/src/main/scala/net/notdot/hashish/web/HashishWebServer.scala
+/Users/nickjohnson/Documents/workspace/hash-ish/src/main/scala/net/notdot/hashish/HashishApp.scala -> /Users/nickjohnson/Documents/workspace/hash-ish/src/main/scala/net/notdot/hashish/HashishApp.scala
 -------
 /Users/nickjohnson/Documents/workspace/hash-ish/src/main/scala/net/notdot/hashish/HashishApp.scala -> /Users/nickjohnson/Documents/workspace/hash-ish/target/classes/net/notdot/hashish/HashishApp$$anonfun$2.class
 /Users/nickjohnson/Documents/workspace/hash-ish/src/main/scala/net/notdot/hashish/HashishApp.scala -> /Users/nickjohnson/Documents/workspace/hash-ish/target/classes/net/notdot/hashish/HashishApp$$anonfun$1.class
