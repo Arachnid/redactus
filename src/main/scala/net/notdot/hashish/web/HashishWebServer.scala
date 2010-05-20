@@ -90,13 +90,6 @@ class DomainHashContentHandler(client:AbstractHashishClient) extends BaseContent
 }
 
 class UploadHandler(client:AbstractHashishClient) extends AbstractHandler {
-	def createResource(headers:Map[String,String], body:Array[Byte]):Resource = {
-		headers.get("Content-Type") match {
-			case Some("text/x-hashish-manifest") => new Manifest(body)
-			case _ => new Content(headers, body)
-		}
-	}
-
 	def extractBody(request:HttpServletRequest) = {
 		val headers = (for {
 			nameObj <- request.getHeaderNames()
@@ -104,7 +97,7 @@ class UploadHandler(client:AbstractHashishClient) extends AbstractHandler {
 			value = request.getHeader(name)
 		} yield name -> value).toMap[String,String]
 		val body = IOUtils.toByteArray(request.getInputStream())
-		Array(createResource(headers, body))
+		Array(Resource(headers, body))
 	}
 	
 	def extractMultipart(request:HttpServletRequest) = {
@@ -123,7 +116,7 @@ class UploadHandler(client:AbstractHashishClient) extends AbstractHandler {
 				} yield name -> value).toMap[String,String]*/
 				val headers = Map("Content-Type" -> item.getContentType)
 				val body = IOUtils.toByteArray(item.openStream())
-				ret += createResource(headers, body)
+				ret += Resource(headers, body)
 			}
 		}
 		ret.toArray[Resource]

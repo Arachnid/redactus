@@ -5,6 +5,15 @@ import scala.collection.mutable.WrappedArray
 import rice.p2p.past._
 import rice.p2p.commonapi.Id
 
+object Resource {
+	def apply(headers:Map[String,String], body:Array[Byte]):Resource = {
+		headers.get("Content-Type") match {
+			case Some("text/x-hashish-manifest") => new Manifest(body)
+			case _ => new Content(headers, body)
+		}
+	}
+}
+
 abstract class Resource extends PastContent {
 	@transient
 	var id:Id = null
