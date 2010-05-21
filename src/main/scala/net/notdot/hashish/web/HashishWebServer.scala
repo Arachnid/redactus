@@ -1,5 +1,6 @@
 package net.notdot.hashish.web
 
+import scala.concurrent.ops._
 import scala.collection.JavaConversions._
 import scala.collection.mutable.ArrayBuffer
 import java.security.MessageDigest
@@ -14,6 +15,9 @@ import org.eclipse.jetty.continuation.ContinuationSupport
 import org.eclipse.jetty.server.Request
 import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.server.handler._
+import org.xbill.DNS.Lookup
+import org.xbill.DNS.Type
+import org.xbill.DNS.CNAMERecord
 import rice.p2p.commonapi.Id
 import rice.p2p.past.PastException
 
@@ -86,6 +90,27 @@ class DomainHashContentHandler(client:AbstractHashishClient) extends BaseContent
 			}
 			case _ => Unit
 		}
+	}
+}
+
+class DomainCNameContentHandler(client:AbstractHashishClient) extends BaseContentHandler(client) {
+	def handleWithCName(continuation:Continuation, response:HttpServletResponse, name:String, path:String) = {
+		spawn {
+			val records = new Lookup(name, Type.CNAME).run()
+			val aliases = records.collect { case x:CNAMERecord => x.getTarget.toString }
+			aliases collect { case BaseContentHandler.HostnameHashRE(x) => x } headOption match {
+				case Some(hexId) => getContent(continuation, response, rice.pastry.Id.build(hexId), path)
+				case None => serve404(continuation, response, "Could not resolve hostname to a valid hash")
+			}
+		}
+	}
+
+	def handle(target:String, baseRequest:Request, request:HttpServletRequest,
+			response:HttpServletResponse) = {
+		val continuation = ContinuationSupport.getContinuation(request)
+		continuation.suspend
+		baseRequest.setHandled(true)
+		handleWithCName(continuation, response, request.getServerName, request.getPathInfo)
 	}
 }
 
@@ -171,8 +196,12 @@ class HashishWebServer(val port:Int, val client:AbstractHashishClient) {
 		val domainHashContext = new ContextHandler
 		domainHashContext.setHandler(new DomainHashContentHandler(client))
 
+		val domainCnameContext = new ContextHandler
+		domainCnameContext.setHandler(new DomainCNameContentHandler(client))
+		
 		val contexts = new ContextHandlerCollection
-		contexts.setHandlers(Array(uploadContext, pathHashContext, domainHashContext))
+		contexts.setHandlers(Array(
+				uploadContext, pathHashContext, domainHashContext, domainCnameContext))
 		
 		server.setHandler(contexts)
 		server.start()
