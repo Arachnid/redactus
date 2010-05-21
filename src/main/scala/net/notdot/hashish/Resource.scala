@@ -74,7 +74,7 @@ class Manifest(val paths:Map[String,Id]) extends Resource {
 	def this(body:Array[Byte]) = this(Manifest.parse(new String(body, "UTF-8")))
 	
 	def lookup(path:String) = paths.get(path) match {
-		case Some(path) => Some((path, ""))
+		case Some(id) => Some((id, ""))
 		case None => None
 	}
 }
