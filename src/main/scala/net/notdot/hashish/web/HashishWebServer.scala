@@ -164,9 +164,9 @@ class UploadHandler(client:AbstractHashishClient) extends AbstractHandler {
 	def finishInsert(continuation:Continuation, request:HttpServletRequest, response:HttpServletResponse, resources:Array[Resource])
 			(results:Array[Either[Exception,Int]]) = {
 		val statuses = for(result <- resources.zip(results)) yield result match {
-			case (resource, Right(0)) => "{'status': 'failure', 'replicas': 0, 'id': '" + resource.getId.toStringFull + "'}"
-			case (resource, Right(successes)) => "{'status': 'success', 'replicas': " + successes + ", 'id': '" + resource.getId.toStringFull + "'}"
-			case (resource, Left(ex)) => "{'status': 'failure', 'replicas': 0, 'id': '" + resource.getId.toStringFull + "', 'error': '" + ex.toString + "'}"
+			case (resource, Right(0)) => "{\"status\": \"failure\", \"replicas\": 0, \"id\": \"" + resource.getId.toStringFull + "\", \"error\": \"No replicas succeeded\"}"
+			case (resource, Right(successes)) => "{\"status\": \"success\", \"replicas\": " + successes + ", \"id\": \"" + resource.getId.toStringFull + "\"}"
+			case (resource, Left(ex)) => "{\"status\": \"failure\", \"replicas\": 0, \"id\": \"" + resource.getId.toStringFull + "\", \"error\": \"" + ex.toString + "\"}"
 		}
 		response.setStatus(201)
 		response.setHeader("Content-Type", "text/plain")
