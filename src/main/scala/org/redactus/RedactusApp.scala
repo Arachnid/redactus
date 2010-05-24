@@ -12,9 +12,9 @@ import org.redactus.web.RedactusWebServer
 object RedactusApp {
 	def main(args: Array[String]):Unit = {
 		val baseProps = new TypedProperties
-		baseProps.load(this.getClass().getClassLoader().getResourceAsStream("META-INF/hashish.properties"))
+		baseProps.load(this.getClass().getClassLoader().getResourceAsStream("META-INF/redactus.properties"))
 
-		val propFile = new File("./hashish.properties")
+		val propFile = new File("./redactus.properties")
 		val properties = if(propFile.exists)
 			new TypedProperties(baseProps)
 		else
