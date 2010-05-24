@@ -1,4 +1,4 @@
-package net.notdot.hashish
+package org.redactus
 
 import java.util.Properties
 

@@ -1,4 +1,4 @@
-package net.notdot.hashish
+package org.redactus
 
 import java.io.File
 import java.io.FileInputStream
@@ -7,9 +7,9 @@ import java.net.InetAddress
 import java.net.InetSocketAddress
 import java.util.Properties
 import rice.environment.Environment
-import net.notdot.hashish.web.HashishWebServer
+import org.redactus.web.RedactusWebServer
 
-object HashishApp {
+object RedactusApp {
 	def main(args: Array[String]):Unit = {
 		val baseProps = new TypedProperties
 		baseProps.load(this.getClass().getClassLoader().getResourceAsStream("META-INF/hashish.properties"))
@@ -21,7 +21,7 @@ object HashishApp {
 			baseProps
 		
 		val env = new Environment
-		val client = new SocketHashishClient(properties, env)
+		val client = new SocketRedactusClient(properties, env)
 		
 		val bootAddresses = (properties.getString("boot_addresses")
 			.split(",").map(_.split(":"))
@@ -32,7 +32,7 @@ object HashishApp {
 			case None => printf("Booted!")
 		}
 		
-		val server = new HashishWebServer(properties.getInt("webserver_port"), client)
+		val server = new RedactusWebServer(properties.getInt("webserver_port"), client)
 		server.start()
 	}
 }

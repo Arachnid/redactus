@@ -1,9 +1,8 @@
-package net.notdot
+package org.redactus
 
 import java.lang.ClassCastException
 import rice.Continuation
 import rice.p2p.past.PastContent
-import net.notdot.hashish.Resource
 
 package object pastryutil {
 	implicit def functionToContinuation[T<:AnyRef,R<:T](callback:Either[Exception,R]=>Unit) = {

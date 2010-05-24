@@ -1,9 +1,9 @@
-package net.notdot.hashish
+package org.redactus
 
 import org.specs._
 import rice.pastry.Id
 
-class HashishSpecTest extends SpecificationWithJUnit {
+class RedactusSpecTest extends SpecificationWithJUnit {
 	"Resources" should {
 		"create Content" in {
 			val headers = Map("Content-Type" -> "text/plain")

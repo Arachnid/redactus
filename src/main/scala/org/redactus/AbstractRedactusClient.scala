@@ -1,4 +1,4 @@
-package net.notdot.hashish
+package org.redactus
 
 import java.io.IOException
 import scala.collection.JavaConversions
@@ -9,9 +9,9 @@ import rice.p2p.past._
 import rice.environment.Environment
 import rice.pastry.commonapi.PastryIdFactory
 import rice.persistence._
-import net.notdot.pastryutil._
+import org.redactus.pastryutil._
 
-abstract class AbstractHashishClient(val env:Environment,
+abstract class AbstractRedactusClient(val env:Environment,
 		val nodeFactory:PastryNodeFactory, val properties:TypedProperties) {
 	val node = nodeFactory.newNode
 	val idFactory = new PastryIdFactory(env)

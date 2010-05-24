@@ -1,4 +1,4 @@
-package net.notdot.hashish.web
+package org.redactus.web
 
 import scala.concurrent.ops._
 import scala.collection.JavaConversions._
@@ -21,14 +21,14 @@ import org.xbill.DNS.CNAMERecord
 import rice.p2p.commonapi.Id
 import rice.p2p.past.PastException
 
-import net.notdot.hashish._
+import org.redactus._
 
 object BaseContentHandler {
 	val PathHashRE = """/([0-9a-fA-F]{40})(/.*|)""".r
 	val HostnameHashRE = """([0-9a-fA-F]{40})\.sha1\..+""".r
 }
 
-abstract class BaseContentHandler(val client:AbstractHashishClient) extends AbstractHandler {
+abstract class BaseContentHandler(val client:AbstractRedactusClient) extends AbstractHandler {
 	def getContent(continuation:Continuation, response:HttpServletResponse, id:Id, path:String):Unit = {
 		client.getByHash(id, (result:Either[Exception,Resource]) => {
 			result match {
@@ -63,7 +63,7 @@ abstract class BaseContentHandler(val client:AbstractHashishClient) extends Abst
 	}
 }
 
-class PathHashContentHandler(client:AbstractHashishClient) extends BaseContentHandler(client) {
+class PathHashContentHandler(client:AbstractRedactusClient) extends BaseContentHandler(client) {
 	def handle(target:String, baseRequest:Request, request:HttpServletRequest,
 			response:HttpServletResponse) = {
 		request.getPathInfo match {
@@ -78,7 +78,7 @@ class PathHashContentHandler(client:AbstractHashishClient) extends BaseContentHa
 	}
 }
 
-class DomainHashContentHandler(client:AbstractHashishClient) extends BaseContentHandler(client) {
+class DomainHashContentHandler(client:AbstractRedactusClient) extends BaseContentHandler(client) {
 	def handle(target:String, baseRequest:Request, request:HttpServletRequest,
 			response:HttpServletResponse) = {
 		request.getServerName match {
@@ -93,7 +93,7 @@ class DomainHashContentHandler(client:AbstractHashishClient) extends BaseContent
 	}
 }
 
-class DomainCNameContentHandler(client:AbstractHashishClient) extends BaseContentHandler(client) {
+class DomainCNameContentHandler(client:AbstractRedactusClient) extends BaseContentHandler(client) {
 	def handleWithCName(continuation:Continuation, response:HttpServletResponse, name:String, path:String) = {
 		spawn {
 			val records = new Lookup(name, Type.CNAME).run()
@@ -114,7 +114,7 @@ class DomainCNameContentHandler(client:AbstractHashishClient) extends BaseConten
 	}
 }
 
-class UploadHandler(client:AbstractHashishClient) extends AbstractHandler {
+class UploadHandler(client:AbstractRedactusClient) extends AbstractHandler {
 	def extractBody(request:HttpServletRequest) = {
 		val headers = (for {
 			nameObj <- request.getHeaderNames()
@@ -181,7 +181,7 @@ class UploadHandler(client:AbstractHashishClient) extends AbstractHandler {
 	}
 }
 
-class HashishWebServer(val port:Int, val client:AbstractHashishClient) {
+class RedactusWebServer(val port:Int, val client:AbstractRedactusClient) {
 	val server = new Server(port)
 	
 	def start() {

@@ -1,4 +1,4 @@
-package net.notdot.hashish
+package org.redactus
 
 import java.security.MessageDigest
 import scala.collection.mutable.WrappedArray
