@@ -11,7 +11,8 @@ import threading
 
 def parse_command_line(argv):
   parser = optparse.OptionParser(usage="%prog [options] dir")
-  parser.add_option("-s", "--server", dest="server", help="Server to upload to")
+  parser.add_option("-s", "--server", dest="server", help="Server to upload to",
+                    default="redactus.org")
   parser.add_option("-p", "--port", dest="port", help="Server port", default=80,
                     type="int")
   parser.add_option("-v", "--verbose", dest="verbose", action="store_true",
@@ -94,7 +95,7 @@ class UploadTask(object):
     manifest.sort()
     manifest_str = "\n".join("\t".join(x) for x in manifest)
     headers = {
-        "Content-Type": "text/x-hashish-manifest",
+        "Content-Type": "text/x-redactus-manifest",
     }
     logging.info("Uploading manifest...")
     return self.upload_file(headers, manifest_str)

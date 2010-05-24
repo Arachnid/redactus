@@ -8,7 +8,7 @@ import rice.p2p.commonapi.Id
 object Resource {
 	def apply(headers:Map[String,String], body:Array[Byte]):Resource = {
 		headers.get("Content-Type") match {
-			case Some("text/x-hashish-manifest") => new Manifest(body)
+			case Some("text/x-redactus-manifest") => new Manifest(body)
 			case _ => new Content(headers, body)
 		}
 	}
@@ -63,7 +63,7 @@ object Manifest {
 
 class Manifest(val paths:Map[String,Id]) extends Resource {
 	override def calculateId() = {
-		val headerString = "Content-Type: text/x-hashish-manifest\n"
+		val headerString = "Content-Type: text/x-redactus-manifest\n"
 		val bodyString = paths.map(x => x._1 + "\t" + x._2.toStringFull).reduceLeft(_ + "\n" + _)
 		val message = (headerString + "\n" + bodyString).getBytes("UTF-8")
 		val md = MessageDigest.getInstance("SHA")
